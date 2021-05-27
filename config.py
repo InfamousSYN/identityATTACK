@@ -4,7 +4,7 @@ import os
 __version__ = '1.0'
 
 # Directory Mapping
-root_dir = os.path.split(os.path.abspath(__file__))
+root_dir, conf_file = os.path.split(os.path.abspath(__file__))
 working_dir = root_dir + '/tmp'
 
 # template files
