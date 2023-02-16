@@ -134,7 +134,7 @@ def readProcess(packets):
 class identityATTACK():
 
     @classmethod
-    def __init__(self, ssid=None, interface=None, passwordFile=None, live_capture_window=None, wpa_supplicant_fil=None):
+    def __init__(self, ssid=None, interface=None, passwordFile=None, live_capture_window=None, wpa_supplicant_file=None):
         self.testedIdentity = []
         self.currentlyTestingIdentity = ''
         self.extractedIdentityQueue = queue.Queue()
