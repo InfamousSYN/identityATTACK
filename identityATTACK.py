@@ -26,6 +26,7 @@ bruteforceOptions.add_argument('-e', '--eap', choices=config.supported_eap_metho
 bruteforceOptions.add_argument('-s', '--ssid', dest='ssid', help='specify ssid')
 bruteforceOptions.add_argument('-i', '--interface', dest='interface', help='set interface to use')
 bruteforceOptions.add_argument('-p', '--passfile', dest='pass_file', help='specify wordlist')
+bruteforceOptions.add_argument('--wpa-supplicant-file', default=config.wpa_supplicant_conf_location, dest='wpa_supplicant_file', help='Set a custom location for the wpa_supplicant file')
 
 args, leftover = parser.parse_known_args()
 options = args.__dict__
@@ -74,7 +75,7 @@ class identityAttackUtils():
 
         os.system('nmcli device set {} managed yes'.format(interface))
 
-def identityBrute(identityArray, interface, ssid, passwordFile):
+def identityBrute(identityArray, interface, ssid, passwordFile, wpa_supplicant_file):
     import subprocess, os, signal, datetime, time
 
     passwords = []
@@ -83,7 +84,7 @@ def identityBrute(identityArray, interface, ssid, passwordFile):
     for line in lines:
         passwords.append(line.strip('\n'))
 
-    print('[+] Creating wpa_supplicant.conf file: {}'.format(config.wpa_supplicant_conf_location))
+    print('[+] Creating wpa_supplicant.conf file: {}'.format(wpa_supplicant_file))
     for password in passwords:
         for ia in identityArray:
             conf_manager.wpa_supplicant_conf.configure(
@@ -95,7 +96,7 @@ def identityBrute(identityArray, interface, ssid, passwordFile):
             command = [
                 'wpa_supplicant',
                 '-i{}'.format(interface),
-                '-c{}'.format(config.wpa_supplicant_conf_location)
+                '-c{}'.format(wpa_supplicant_file)
             ]
             print('[+] Trying username "{}" with password "{}"'.format(ia, password))
             start = datetime.datetime.now()
@@ -133,7 +134,7 @@ def readProcess(packets):
 class identityATTACK():
 
     @classmethod
-    def __init__(self, ssid, interface, passwordFile, live_capture_window):
+    def __init__(self, ssid=None, interface=None, passwordFile=None, live_capture_window=None, wpa_supplicant_fil=None):
         self.testedIdentity = []
         self.currentlyTestingIdentity = ''
         self.extractedIdentityQueue = queue.Queue()
@@ -143,6 +144,7 @@ class identityATTACK():
         self.live_capture_window=live_capture_window
         self.capture_still_active = True
         self.passwords = []
+        self.wpa_supplicant_file = wpa_supplicant_file
 
         f = open(self.passwordFile, 'r')
         lines = f.readlines()
@@ -201,7 +203,7 @@ class identityATTACK():
                             command = [
                                 'wpa_supplicant',
                                 '-i{}'.format(options['interface']),
-                                '-c{}'.format(config.wpa_supplicant_conf_location)
+                                '-c{}'.format(self.wpa_supplicant_conf_location)
                             ]
                             ps = subprocess.Popen(
                                 command,
@@ -260,7 +262,7 @@ if __name__ == '__main__':
                 identityArray=extractedIdentity,
                 ssid=options['ssid'],
                 interface=options['interface'],
-                passwordFile=options['pass_file']
+                passwordFile=options['pass_file'],
             )
     elif((options['monitor_interface'] is not None) and (options['filename'] is None)):
         try:
@@ -275,7 +277,7 @@ if __name__ == '__main__':
                     interface=options['interface'],
                     passwordFile=options['pass_file'],
                     live_capture_window=options['live_capture_window'],
-                    configFile=config.wpa_supplicant_conf_location
+                    wpa_supplicant_file=options['wpa_supplicant_file']
                 )
 
             import threading
